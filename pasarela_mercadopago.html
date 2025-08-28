@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pago MercadoPago</title>
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
+    
+</head>
+<body>
+
+    <h2>Resumen de tu compra</h2>
+    
+
+    <div class="mp-container">
+        <img class="mp-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/MercadoPago.svg/120px-MercadoPago.svg.png" alt="Mercado Pago">
+        
+        <!-- Contenedor para el botón de Wallet -->
+        <div id="wallet_container"></div>
+
+      
+    </div>
+    <script>
+        const mp = new MercadoPago('APP_USR-debd0444-94b6-4f8f-bdb3-c4b6a36895ca', {
+            locale: 'es-AR'
+        });
+
+        // Obtener preference_id desde el backend
+        fetch('mercado_pago.php') // Cambia 'backend.php' por la URL correcta de tu servidor
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Error en la respuesta del servidor");
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data && data.preference_id) {
+                    const PREFERENCE_ID = data.preference_id;
+                    
+                    // Crear botón de Wallet
+                    mp.bricks().create("wallet", "wallet_container", {
+                        initialization: {
+                            preferenceId: PREFERENCE_ID,
+                        },
+                    }).catch(error => console.error("Error al crear Wallet:", error));
+
+                    // Asignar enlace dinámico al botón de pago
+                    document.getElementById("checkout-button").href = 
+                        `https://sandbox.mercadopago.com.ar/checkout/v1/redirect?pref_id=${PREFERENCE_ID}`;
+                } else {
+                    throw new Error("Error: No se recibió un preference_id válido.");
+                }
+            })
+            .catch(error => console.error("Error al obtener preference_id:", error));
+    </script>
+
+</body>
+</html>
